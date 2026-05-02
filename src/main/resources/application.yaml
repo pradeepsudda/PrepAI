@@ -3,7 +3,7 @@ spring:
     name: interview-prep-platform
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/interview_prep
+    url: ${DB_URL}
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
@@ -25,29 +25,29 @@ spring:
 
   data:
     redis:
-      host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6379}
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
 
 server:
   port: 8080
 
 jwt:
   secret: ${JWT_SECRET}
-  expiration: 86400000     # 24 hours in ms
-  refresh-expiration: 604800000  # 7 days
+  expiration: ${JWT_SECRET_EXPIRY_TIME}    # 24 hours in ms
+  refresh-expiration: ${JWT_SECRET_REFRESH_TIME}  # 7 days
 
 ai:
   openai:
     api-key: ${OPEN_AI_API_KEY}   # your github_p... token goes here
-    base-url: https://models.inference.ai.azure.com   # ← this changes
-    model: gpt-4.1-mini
-    max-tokens: 2048
+    base-url: ${OPEN_AI_API_URL}   # ← this changes
+    model: ${OPEN_AI_API_MODEL}
+    max-tokens: ${OPEN_AI_API_TOKENS}
 
 
 judge0:
-    api-url:  https://judge029.p.rapidapi.com    # ← matches api-host
-    api-host: judge029.p.rapidapi.com
-    api-key: ${JUDGE_O_API_KEY}
+  api-url: ${JUDGE_O_API_URL}    # ← matches api-host
+  api-host: ${JUDGE_O_API_HOST}
+  api-key: ${JUDGE_O_API_KEY}
 
 cors:
-  allowed-origins: http://localhost:5173
+  allowed-origins: ${CORS_ALLOWED_ORIGINS}

@@ -4,16 +4,18 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
- 
-import java.time.LocalDateTime;
- 
+
+import java.time.Instant;
+import java.util.List;
+
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class RoomEvent {
-    // USER_JOINED | USER_LEFT | SESSION_STARTED | SESSION_ENDED
-    private String        type;
-    private String        userId;
-    private LocalDateTime timestamp;
+    private String type;       // USER_JOINED | USER_LEFT
+    private String userId;     // email of the user
+    private Instant timestamp;
+    // epoch millis — safe for new Date(ms) in JS
+    private List<String> participants;
 }
