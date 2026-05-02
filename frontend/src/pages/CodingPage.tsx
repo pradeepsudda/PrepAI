@@ -241,34 +241,34 @@ export default function CodingPage() {
       <div className="flex-1 flex overflow-hidden">
 
         {/* Problem description */}
-        <div className="w-80 flex-shrink-0 border-r border-surface-border p-5 overflow-y-auto text-sm">
+        <div className="w-[750px] border-r border-surface-border p-5 overflow-y-auto text-base">
           <h2 className="font-display font-bold text-white text-base mb-3">{challenge.title}</h2>
 
           <p className="text-gray-300 leading-relaxed mb-4">{challenge.description}</p>
 
-          {challenge.examples?.length > 0 && (
-            <div className="space-y-3 mb-4">
-              {challenge.examples.map((ex, i) => (
-                <div key={i} className="bg-surface-raised rounded-xl p-3 border border-surface-border">
-                  <p className="text-xs text-gray-500 mb-1 font-medium">Example {i + 1}</p>
-                  <p className="text-xs font-mono text-gray-300">Input: {ex.input}</p>
-                  <p className="text-xs font-mono text-gray-300">Output: {ex.output}</p>
-                  {ex.explanation && (
-                    <p className="text-xs text-gray-500 mt-1 italic">{ex.explanation}</p>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-
           {challenge.constraints?.length > 0 && (
             <div>
-              <p className="text-xs text-gray-500 font-medium mb-2">Constraints</p>
-              <ul className="text-xs text-gray-400 space-y-1">
+              <p className="text-sm text-gray-500 font-medium mb-2">Constraints</p>
+              <ul className="text-sm text-gray-400 space-y-1">
                 {challenge.constraints.map((c, i) => (
                   <li key={i}>• {c}</li>
                 ))}
               </ul>
+            </div>
+          )}
+
+          {challenge.examples?.length > 0 && (
+            <div className="space-y-3 mt-6">
+              {challenge.examples.map((ex, i) => (
+                <div key={i} className="bg-surface-raised rounded-xl p-3 border border-surface-border">
+                  <p className="text-sm text-gray-500 mb-1 font-medium">Example {i + 1}</p>
+                  <p className="text-sm font-mono text-gray-300">Input: {ex.input}</p>
+                  <p className="text-sm font-mono text-gray-300">Output: {ex.output}</p>
+                  {ex.explanation && (
+                    <p className="text-sm text-gray-500 mt-1 italic">{ex.explanation}</p>
+                  )}
+                </div>
+              ))}
             </div>
           )}
         </div>

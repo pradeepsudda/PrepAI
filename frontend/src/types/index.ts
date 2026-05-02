@@ -141,7 +141,13 @@ export interface RoomDto {
 export interface ChatMessage {
   text:      string
   sender:    string
-  timestamp: string
+  timestamp: number   
+}
+
+export interface RoomEvent {
+  type:      string    
+  userId:    string   
+  timestamp: number  
 }
 
 export interface CodingChallenge {
@@ -163,4 +169,12 @@ export interface PagedResponse<T> {
   size:          number
   first:         boolean
   last:          boolean
+}
+
+// Type for WebRTC signals received from server
+export interface WebRtcSignalMsg {
+  type:    string   // OFFER | ANSWER | ICE_CANDIDATE
+  from:    string   // sender email
+  to:      string   // receiver email
+  payload: string   // JSON string of SDP or ICE candidate
 }
