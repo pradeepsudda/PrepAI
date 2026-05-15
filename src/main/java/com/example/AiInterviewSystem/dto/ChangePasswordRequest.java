@@ -1,6 +1,7 @@
 package com.example.AiInterviewSystem.dto;
 
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
  
 @Data
@@ -13,4 +14,3 @@ public class ChangePasswordRequest {
     @Size(min = 8, message = "New password must be at least 8 characters")
     private String newPassword;
 }
- 

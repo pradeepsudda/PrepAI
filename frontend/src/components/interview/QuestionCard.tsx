@@ -7,8 +7,9 @@ interface Props {
   totalQuestions: number
   timeLimitSec:   number
   timeLeft:       number
-  onSpeak:        () => void
+  onSpeak?: () => void 
 }
+
  
 export function QuestionCard({
   questionText, currentNumber, totalQuestions, timeLimitSec, timeLeft, onSpeak
@@ -34,7 +35,7 @@ export function QuestionCard({
             {Math.floor(timeLeft / 60).toString().padStart(2, '0')}:
             {(timeLeft % 60).toString().padStart(2, '0')}
           </span>
-          <button
+          {onSpeak && <button
             onClick={onSpeak}
             className="p-2 rounded-lg hover:bg-surface-raised text-gray-400
                        hover:text-brand-400 transition-colors"
@@ -42,6 +43,7 @@ export function QuestionCard({
           >
             <Volume2 size={16} />
           </button>
+          }
         </div>
       </div>
  

@@ -1,82 +1,124 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { Toaster } from 'react-hot-toast'
-import { useAuthStore } from '@/store/authStore'
-import Layout from '@/components/ui/Layout'
-
-import LoginPage          from '@/pages/LoginPage'
-import RegisterPage       from '@/pages/RegisterPage'
-import DashboardPage      from '@/pages/DashboardPage'
-import InterviewSetupPage from '@/pages/InterviewSetupPage'
-import VoiceInterviewPage from '@/pages/VoiceInterviewPage'
-import CodingChallengesPage from '@/pages/CodingChallengesPage'
-import CodingPage           from '@/pages/CodingPage'
-import SessionReviewPage  from '@/pages/SessionReviewPage'
-import AnalyticsPage      from '@/pages/AnalyticsPage'
-import LiveRoomsPage      from '@/pages/LiveRoomsPage'
-import ResumePage         from '@/pages/ResumePage'
-import RoomPage           from '@/pages/RoomPage'
-
+import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom'
+import { QueryClient, QueryClientProvider }  from '@tanstack/react-query'
+import { Toaster }                            from 'react-hot-toast'
+import { useAuthStore, getTokenExpiryMs }     from '@/store/authStore'
+import { useEffect }                          from 'react'
+import Layout                                 from '@/components/ui/Layout'
+ 
+import LoginPage             from '@/pages/LoginPage'
+import RegisterPage          from '@/pages/RegisterPage'
+import DashboardPage         from '@/pages/DashboardPage'
+import InterviewSetupPage    from '@/pages/InterviewSetupPage'
+import HybridInterviewPage   from './pages/HybridInterviewPage'
+import CodingChallengesPage  from '@/pages/CodingChallengesPage'
+import CodingPage            from '@/pages/CodingPage'
+import SessionReviewPage     from '@/pages/SessionReviewPage'
+import AnalyticsPage         from '@/pages/AnalyticsPage'
+import LiveRoomsPage         from '@/pages/LiveRoomsPage'
+import ResumePage            from '@/pages/ResumePage'
+import RoomPage              from '@/pages/RoomPage'
+import ProfilePage           from '@/pages/ProfilePage'
+import ResourcesPage from '@/pages/ResourcesPage'
+ 
 const queryClient = new QueryClient({
-  defaultOptions: { queries: { retry: 1, staleTime: 30_000 } },
+  defaultOptions: {
+    queries: {
+      retry: (failureCount, error: unknown) => {
+        // ✅ Don't retry on 401 — token is expired, no point retrying
+        const status = (error as { response?: { status?: number } })?.response?.status
+        if (status === 401) return false
+        return failureCount < 1
+      },
+      staleTime: 30_000,
+    },
+  },
 })
-
-/** Redirect to /login if not authenticated */
+ 
+// ✅ NEW: Auto-logout timer — runs inside BrowserRouter so useNavigate works
+function TokenExpiryWatcher() {
+  const { token, logout, isAuthenticated } = useAuthStore()
+  const navigate = useNavigate()
+ 
+  useEffect(() => {
+    if (!isAuthenticated || !token) return
+ 
+    const expiryMs = getTokenExpiryMs(token)
+    if (!expiryMs) return
+ 
+    const msUntilExpiry = expiryMs - Date.now()
+ 
+    if (msUntilExpiry <= 0) {
+      // Already expired on mount — this should have been caught by
+      // onRehydrateStorage, but handle it here as safety net
+      logout()
+      navigate('/login', { replace: true })
+      return
+    }
+ 
+    // Schedule logout 30s before actual expiry to avoid
+    // in-flight requests failing with 401
+    const msUntilLogout = Math.max(msUntilExpiry - 30_000, 0)
+ 
+    const timer = setTimeout(() => {
+      logout()
+      navigate('/login', { replace: true })
+    }, msUntilLogout)
+ 
+    return () => clearTimeout(timer)
+  }, [token, isAuthenticated]) // eslint-disable-line
+ 
+  return null
+}
+ 
 function Guard({ children }: { children: React.ReactNode }) {
   const ok = useAuthStore((s) => s.isAuthenticated)
   return ok ? <>{children}</> : <Navigate to="/login" replace />
 }
-
-/** Redirect to /dashboard if already authenticated */
+ 
 function GuestOnly({ children }: { children: React.ReactNode }) {
   const ok = useAuthStore((s) => s.isAuthenticated)
   return ok ? <Navigate to="/dashboard" replace /> : <>{children}</>
 }
-
-/** Authenticated pages that live inside the sidebar layout */
-function AppShell({ children }: { children : React.ReactNode }) {
+ 
+function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <Guard>
       <Layout>{children}</Layout>
     </Guard>
   )
 }
-
+ 
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
+        {/* ✅ TokenExpiryWatcher must be inside BrowserRouter */}
+        <TokenExpiryWatcher />
+ 
         <Routes>
-          {/* Root */}
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
-
-          {/* ── Auth (no sidebar) ── */}
+ 
           <Route path="/login"    element={<GuestOnly><LoginPage /></GuestOnly>} />
           <Route path="/register" element={<GuestOnly><RegisterPage /></GuestOnly>} />
-
-          {/* ── App shell pages (with sidebar) ── */}
+ 
           <Route path="/dashboard"           element={<AppShell><DashboardPage /></AppShell>} />
           <Route path="/interview"           element={<AppShell><InterviewSetupPage /></AppShell>} />
           <Route path="/sessions/:sessionId" element={<AppShell><SessionReviewPage /></AppShell>} />
           <Route path="/analytics"           element={<AppShell><AnalyticsPage /></AppShell>} />
           <Route path="/rooms"               element={<AppShell><LiveRoomsPage /></AppShell>} />
           <Route path="/resume"              element={<AppShell><ResumePage /></AppShell>} />
-
-          {/* ── Fullscreen pages (no sidebar) ── */}
-          {/* /interview/:sessionId — live voice interview session */}
-          <Route path="/interview/:sessionId"    element={<Guard><VoiceInterviewPage /></Guard>} />
-          {/* /coding — challenge list (with sidebar) */}
-          <Route path="/coding"                  element={<AppShell><CodingChallengesPage /></AppShell>} />
-          {/* /coding/:challengeId — fullscreen IDE */}
-          <Route path="/coding/:challengeId"     element={<Guard><CodingPage /></Guard>} />
-          {/* /rooms/:roomId — live collaborative room */}
-          <Route path="/rooms/:roomId"           element={<Guard><RoomPage /></Guard>} />
-
-          {/* Fallback */}
+ 
+          <Route path="/interview/:sessionId" element={<HybridInterviewPage />} />
+          <Route path="/coding"               element={<AppShell><CodingChallengesPage /></AppShell>} />
+          <Route path="/coding/:challengeId"  element={<Guard><CodingPage /></Guard>} />
+          <Route path="/rooms/:roomId"        element={<Guard><RoomPage /></Guard>} />
+          <Route path="/profile" element={<AppShell><ProfilePage /></AppShell>} />
+          <Route path="/resources" element={<AppShell><ResourcesPage /></AppShell>} />
+ 
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
       </BrowserRouter>
-
+ 
       <Toaster
         position="top-right"
         toastOptions={{
