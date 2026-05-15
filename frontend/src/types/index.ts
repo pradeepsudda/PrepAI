@@ -27,13 +27,15 @@ export interface InterviewSession {
 }
  
 export interface Question {
-  id:             string
-  questionText:   string
-  questionType:   string
-  orderIndex:     number
-  timeLimitSec:   number
-  currentNumber:  number
-  totalQuestions: number
+  id:                string
+  questionText:      string
+  questionType:      string
+  orderIndex:        number
+  timeLimitSec:      number
+  currentNumber:     number
+  totalQuestions:    number
+  questionMode:      'VOICE' | 'CODE'   // ✅ NEW — drives UI switching
+  suggestedLanguage?: string            // ✅ NEW — "python", "java", etc.
 }
  
 export interface AnswerFeedback {
@@ -141,13 +143,13 @@ export interface RoomDto {
 export interface ChatMessage {
   text:      string
   sender:    string
-  timestamp: number   
+  timestamp: number
 }
 
 export interface RoomEvent {
-  type:      string    
-  userId:    string   
-  timestamp: number  
+  type:      string
+  userId:    string
+  timestamp: number
 }
 
 export interface CodingChallenge {
@@ -177,4 +179,117 @@ export interface WebRtcSignalMsg {
   from:    string   // sender email
   to:      string   // receiver email
   payload: string   // JSON string of SDP or ICE candidate
+}
+
+export type CodeLanguage = 'javascript' | 'python' | 'java' | 'cpp' | 'go' | 'typescript'
+
+export interface ProfileStats {
+  totalSessions:          number
+  completedSessions:      number
+  abandonedSessions:      number
+  avgScore:               number
+  bestScore:              number
+  totalQuestionsAnswered: number
+  totalPracticeMinutes:   number
+  currentStreak:          number
+  longestStreak:          number
+  strongestCategory:      string
+  weakestCategory:        string
+  dsaSessions:            number
+  systemDesignSessions:   number
+  behavioralSessions:     number
+  mixedSessions:          number
+}
+
+export interface ProfileData {
+  id:                  string
+  email:               string
+  fullName:            string
+  role:                string
+  bio?:                string
+  location?:           string
+  createdAt:           string
+  githubUrl?:          string
+  linkedinUrl?:        string
+  leetcodeUrl?:        string
+  hackerrankUrl?:      string
+  codeforcesUrl?:      string
+  websiteUrl?:         string
+  defaultDifficulty:   string
+  preferredLanguage:   string
+  emailNotifications:  boolean
+  stats:               ProfileStats
+}
+
+export interface UpdateProfilePayload {
+  fullName?:           string
+  email?:              string
+  bio?:                string
+  location?:           string
+  githubUrl?:          string
+  linkedinUrl?:        string
+  leetcodeUrl?:        string
+  hackerrankUrl?:      string
+  codeforcesUrl?:      string
+  websiteUrl?:         string
+  defaultDifficulty?:  string
+  preferredLanguage?:  string
+  emailNotifications?: boolean
+}
+
+export interface ChangePasswordPayload {
+  currentPassword: string
+  newPassword:     string
+}
+
+export type ResourceType =
+  | 'VIDEO' | 'ARTICLE' | 'COURSE' | 'BOOK'
+  | 'PRACTICE' | 'DOCUMENTATION' | 'REPO'
+  | 'GITHUB' | 'ROADMAP' 
+
+export type ResourceDifficulty =
+  | 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED'
+  | 'ALL'   
+
+export interface ResourceItem {
+  title: string
+  description: string
+  type: ResourceType
+  difficulty: ResourceDifficulty
+  estimatedTime: string
+  url: string
+  platform: string
+  topics: string[]
+  whyRecommended: string
+  isPriority: boolean
+
+  source?: string
+  whyRelevant?: string
+  priority?: number
+}
+
+export interface ResourceSection {
+  sectionTitle: string
+  sectionDescription: string
+  priority: number
+  resources: ResourceItem[]
+
+  category?: string
+  focusArea?: string
+  weaknessSummary?: string
+  studyPlan?: string[]
+  userScore?: number
+}
+
+export interface ResourcesResponse {
+  personalizedSummary: string
+  studyPlan: string
+  estimatedPrepTime: string
+  sections: ResourceSection[]
+  quickWins: string[]
+
+  overallAdvice?: string
+  priorityActions?: string[]
+  generatedAt?: string
+  fromCache?: boolean
 }

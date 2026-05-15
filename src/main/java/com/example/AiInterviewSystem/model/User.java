@@ -46,6 +46,42 @@ public class User implements UserDetails {
     @UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @Column(length = 300)
+    private String bio;
+
+    @Column(length = 100)
+    private String location;
+
+    @Column(name = "github_url")
+    private String githubUrl;
+
+    @Column(name = "linkedin_url")
+    private String linkedinUrl;
+
+    @Column(name = "leetcode_url")
+    private String leetcodeUrl;
+
+    @Column(name = "hackerrank_url")
+    private String hackerrankUrl;
+
+    @Column(name = "codeforces_url")
+    private String codeforcesUrl;
+
+    @Column(name = "website_url")
+    private String websiteUrl;
+
+    @Column(name = "default_difficulty", length = 10)
+    @Builder.Default
+    private String defaultDifficulty = "MEDIUM";
+
+    @Column(name = "preferred_language", length = 50)
+    @Builder.Default
+    private String preferredLanguage = "python";
+
+    @Column(name = "email_notifications")
+    @Builder.Default
+    private boolean emailNotifications = true;
  
     // ── UserDetails interface methods ─────────────────────────────
     @Override
