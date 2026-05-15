@@ -2,18 +2,21 @@ import { useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import {
   LayoutDashboard, Mic, Code2, BarChart2, Users,
-  FileText, LogOut, Menu, X, ChevronRight, 
+  FileText, LogOut, Menu, X, ChevronRight, BookMarked
 } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
 import { cn } from '@/utils/cn'
+import { User as UserIcon } from 'lucide-react'
  
 const NAV = [
   { to: '/dashboard',  icon: LayoutDashboard, label: 'Dashboard'    },
   { to: '/interview',  icon: Mic,             label: 'Practice'     },
   { to: '/coding',     icon: Code2,           label: 'Coding'       },
   { to: '/analytics',  icon: BarChart2,       label: 'Analytics'    },
+  { to: '/resources', icon: BookMarked, label: 'Resources' },
   { to: '/rooms',      icon: Users,           label: 'Live Rooms'   },
   { to: '/resume',     icon: FileText,        label: 'Resume'       },
+  { to: '/profile', icon: UserIcon, label: 'Profile' },
 ]
  
 export default function Layout({ children }: { children: React.ReactNode }) {
