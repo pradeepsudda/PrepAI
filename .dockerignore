@@ -1,0 +1,27 @@
+# Build output
+target/
+
+# IDE files
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# Frontend (built separately)
+frontend/
+
+# Git
+.git/
+.gitignore
+
+# Environment files (never bake secrets into the image)
+**/.env
+**/.env.*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/

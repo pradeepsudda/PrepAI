@@ -12,7 +12,6 @@ export function useTextToSpeech() {
     utterance.pitch   = 1.0
     utterance.volume  = 0.9
  
-    // Prefer a natural-sounding voice if available
     const voices    = window.speechSynthesis.getVoices()
     const preferred = voices.find(v =>
       v.name.includes('Google') || v.name.includes('Natural') || v.lang === 'en-US'

@@ -24,7 +24,6 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: (failureCount, error: unknown) => {
-        // ✅ Don't retry on 401 — token is expired, no point retrying
         const status = (error as { response?: { status?: number } })?.response?.status
         if (status === 401) return false
         return failureCount < 1
@@ -34,7 +33,6 @@ const queryClient = new QueryClient({
   },
 })
  
-// ✅ NEW: Auto-logout timer — runs inside BrowserRouter so useNavigate works
 function TokenExpiryWatcher() {
   const { token, logout, isAuthenticated } = useAuthStore()
   const navigate = useNavigate()
@@ -48,15 +46,11 @@ function TokenExpiryWatcher() {
     const msUntilExpiry = expiryMs - Date.now()
  
     if (msUntilExpiry <= 0) {
-      // Already expired on mount — this should have been caught by
-      // onRehydrateStorage, but handle it here as safety net
       logout()
       navigate('/login', { replace: true })
       return
     }
  
-    // Schedule logout 30s before actual expiry to avoid
-    // in-flight requests failing with 401
     const msUntilLogout = Math.max(msUntilExpiry - 30_000, 0)
  
     const timer = setTimeout(() => {
@@ -65,7 +59,7 @@ function TokenExpiryWatcher() {
     }, msUntilLogout)
  
     return () => clearTimeout(timer)
-  }, [token, isAuthenticated]) // eslint-disable-line
+  }, [token, isAuthenticated]) 
  
   return null
 }
@@ -92,7 +86,6 @@ export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        {/* ✅ TokenExpiryWatcher must be inside BrowserRouter */}
         <TokenExpiryWatcher />
  
         <Routes>

@@ -34,8 +34,8 @@ export interface Question {
   timeLimitSec:      number
   currentNumber:     number
   totalQuestions:    number
-  questionMode:      'VOICE' | 'CODE'   // ✅ NEW — drives UI switching
-  suggestedLanguage?: string            // ✅ NEW — "python", "java", etc.
+  questionMode:      'VOICE' | 'CODE'  
+  suggestedLanguage?: string          
 }
  
 export interface AnswerFeedback {
@@ -121,7 +121,6 @@ export interface CodeExecutionResult {
 export interface TestCaseResult {
   testCaseIndex:   number
   passed:          boolean
-  /** "Accepted" | "Wrong Answer" | "Runtime Error" | "Compilation Error" */
   errorStatus?:    string
   input:           string
   expectedOutput:  string
@@ -167,18 +166,17 @@ export interface PagedResponse<T> {
   content:       T[]
   totalElements: number
   totalPages:    number
-  number:        number   // current page (0-based)
+  number:        number   
   size:          number
   first:         boolean
   last:          boolean
 }
 
-// Type for WebRTC signals received from server
 export interface WebRtcSignalMsg {
-  type:    string   // OFFER | ANSWER | ICE_CANDIDATE
-  from:    string   // sender email
-  to:      string   // receiver email
-  payload: string   // JSON string of SDP or ICE candidate
+  type:    string 
+  from:    string  
+  to:      string   
+  payload: string   
 }
 
 export type CodeLanguage = 'javascript' | 'python' | 'java' | 'cpp' | 'go' | 'typescript'

@@ -102,8 +102,6 @@ export default function CodingPage() {
   const [result, setResult]       = useState<CodeExecutionResult | null>(null)
   const [activeTab, setActiveTab] = useState<'input' | 'output'>('input')
 
-  // Track which challenge we've already initialized code for, so switching
-  // languages reloads the starter but we don't reset user code on unrelated re-renders.
   const loadedChallengeRef = useRef<string | null>(null)
 
   const { data: challenge, isLoading, isError } = useQuery({
@@ -113,24 +111,21 @@ export default function CodingPage() {
     staleTime: 120_000,
   })
 
-  // Whenever the challenge loads OR the language changes → load the appropriate starter.
   useEffect(() => {
     if (!challenge) return
     const starter = challenge.starterCode?.[lang] ?? DEFAULT_STARTER[lang]
     setCode(starter)
 
-    // Reset result panel so stale output from a previous challenge isn't shown
     if (loadedChallengeRef.current !== challenge.id) {
       loadedChallengeRef.current = challenge.id
       setResult(null)
       setStdin('')
       setActiveTab('input')
     }
-  }, [challenge, lang]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [challenge, lang])
 
   const handleLangChange = (l: Lang) => {
     setLang(l)
-    // code will be refreshed by the effect above
   }
 
   const runMutation = useMutation({

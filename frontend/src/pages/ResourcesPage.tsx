@@ -15,13 +15,6 @@ import { cn }            from '@/utils/cn'
 import toast             from 'react-hot-toast'
 import type { ResourceItem, ResourceSection, ResourcesResponse } from '@/types'
 
-// ── Types matching actual backend JSON ───────────────────────
-// (already in your types/index.ts — shown here for reference)
-// difficulty can be "ALL" from AI — treat as INTERMEDIATE
-// quickWins may be at any position in JSON — always use optional chaining
-
-// ── Config ───────────────────────────────────────────────────
-
 const CATEGORIES = [
   { id: 'DSA',           label: 'DSA',           icon: '🧩', color: 'text-blue-400',   border: 'border-blue-500/40 bg-blue-500/5'   },
   { id: 'SYSTEM_DESIGN', label: 'System Design', icon: '🏗️', color: 'text-purple-400', border: 'border-purple-500/40 bg-purple-500/5' },
@@ -52,10 +45,7 @@ const TYPE_CONFIG: Record<string, { label: string; icon: React.ReactNode; color:
   REPO:          { label: 'Repo',      icon: <Github size={11} />,    color: 'text-gray-300',   bg: 'bg-gray-500/10 border-gray-500/20'     },
 }
 
-// Fallback for unknown types
 const DEFAULT_TYPE = { label: 'Resource', icon: <Globe size={11} />, color: 'text-gray-400', bg: 'bg-gray-500/10 border-gray-500/20' }
-
-// ── Main Component ────────────────────────────────────────────
 
 export default function ResourcesPage() {
   const qc = useQueryClient()
@@ -75,7 +65,6 @@ export default function ResourcesPage() {
     topic?:     string
   } | null>(null)
 
-  // Initial auto-load on mount
   const { data: resources, isLoading, isError, refetch } = useQuery({
     queryKey: ['resources', queryParams],
     queryFn:  () => {
@@ -86,15 +75,13 @@ export default function ResourcesPage() {
           specificTopic: queryParams.topic,
         }).then((r: { data: any }) => r.data)
       }
-      // Default load on page open
       return resourcesApi.generate({
         categories: ['DSA', 'SYSTEM_DESIGN', 'BEHAVIORAL', 'MIXED'],
         prepDepth:  'THOROUGH',
       }).then((r: { data: any }) => r.data)
     },
-    // Don't auto-fetch until user explicitly clicks generate
     enabled:         hasGenerated,
-    staleTime:       1000 * 60 * 30,   // 30 min
+    staleTime:       1000 * 60 * 30,   
     retry:           1,
     refetchOnWindowFocus: false,
   })
@@ -130,14 +117,12 @@ export default function ResourcesPage() {
       return next
     })
 
-  // ── ✅ FIX: safe filtering with null guards ───────────────────
   const filteredSections: ResourceSection[] = useMemo(() => {
     if (!resources?.sections) return []
 
     return resources.sections
       .map((sec: { resources: any }) => ({
         ...sec,
-        // Guard against null resources array
         resources: (sec.resources ?? []).filter((r: { title: any; description: any; topics: any; type: string; difficulty: string }) => {
           if (!r) return false
           const matchSearch = !search ||
@@ -593,13 +578,10 @@ function SectionCard({
 // RESOURCE CARD — null-safe, handles unknown type/difficulty
 // ════════════════════════════════════════════════════════════════
 function ResourceCard({ resource }: { resource: ResourceItem }) {
-  // ✅ Safe fallback for any type the AI returns
   const typeConf = TYPE_CONFIG[resource.type] ?? DEFAULT_TYPE
 
-  // ✅ Safe fallback for "ALL" or any unknown difficulty
   const diffStyle = DIFF_CONFIG[resource.difficulty] ?? DIFF_CONFIG.INTERMEDIATE
 
-  // Ensure URL has protocol
   const safeUrl = resource.url
     ? (resource.url.startsWith('http') ? resource.url : `https://${resource.url}`)
     : '#'

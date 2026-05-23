@@ -44,7 +44,6 @@ public class RoomService {
         return mapToDto(room);
     }
 
-    // ✅ NEW — add participant and return FULL updated list
     @Transactional
     public List<String> addParticipantAndGetAll(String roomId, String userEmail) {
         InterviewRoom room = roomRepository.findById(UUID.fromString(roomId))
@@ -58,10 +57,9 @@ public class RoomService {
             room.setParticipants(participants);
             roomRepository.save(room);
         }
-        return new ArrayList<>(participants);  // return copy
+        return new ArrayList<>(participants);
     }
 
-    // ✅ NEW — remove participant and return FULL remaining list
     @Transactional
     public List<String> removeParticipantAndGetAll(String roomId, String userEmail) {
         InterviewRoom room = roomRepository.findById(UUID.fromString(roomId))
@@ -81,7 +79,6 @@ public class RoomService {
         return new ArrayList<>(participants);
     }
 
-    // Keep old methods for backward compat
     @Transactional
     public void addParticipant(String roomId, String userEmail) {
         addParticipantAndGetAll(roomId, userEmail);

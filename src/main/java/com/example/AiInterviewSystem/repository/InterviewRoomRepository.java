@@ -14,6 +14,4 @@ public interface InterviewRoomRepository extends JpaRepository<InterviewRoom, UU
     List<InterviewRoom> findByActiveTrueOrderByCreatedAtDesc();
  
     boolean existsByRoomCode(String roomCode);
- 
-    List<InterviewRoom> findByHostIdAndActiveTrue(UUID hostId);
 }

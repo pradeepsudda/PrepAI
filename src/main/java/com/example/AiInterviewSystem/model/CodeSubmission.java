@@ -36,7 +36,6 @@ public class CodeSubmission {
     @Column(name = "source_code", nullable = false, columnDefinition = "TEXT")
     private String sourceCode;
  
-    // "Accepted", "Wrong Answer", "Runtime Error", "Time Limit Exceeded", etc.
     @Column(length = 50)
     private String status;
  
@@ -46,7 +45,6 @@ public class CodeSubmission {
     @Column(name = "memory_kb")
     private Integer memoryKb;
  
-    // JSONB: serialised list of TestCaseResult
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "test_results", columnDefinition = "jsonb")
     private List<TestCaseResult> testResults;

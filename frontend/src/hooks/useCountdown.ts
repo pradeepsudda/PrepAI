@@ -7,7 +7,6 @@ export function useCountdown(initialSeconds: number) {
   const [lastInitial, setLastInitial] = useState(initialSeconds)
   const intervalRef                   = useRef<ReturnType<typeof setInterval>>()
 
-  // Sync state when initialSeconds prop changes (render-time derived state, avoids setState-in-effect)
   if (lastInitial !== initialSeconds) {
     setLastInitial(initialSeconds)
     setTimeLeft(initialSeconds)
