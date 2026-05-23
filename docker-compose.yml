@@ -1,21 +1,53 @@
-version: '3.8'
-
 services:
-  postgres:
-    image: postgres:16-alpine
-    environment:
-      POSTGRES_DB: interview_prep
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    ports:
-      - "5432:5432"
-    volumes:
-      - pg_data:/var/lib/postgresql/data
-
   redis:
     image: redis:7-alpine
+    command: redis-server --save 60 1 --loglevel warning
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - prep-ai-net
+
+  app:
+    build: .
     ports:
-      - "6379:6379"
+      - "8080:8080"
+    environment:
+      # Database — external PostgreSQL server
+      DB_URL: ${DB_URL}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      # Redis — uses the redis service name, not localhost
+      REDIS_HOST: redis
+      REDIS_PORT: ${REDIS_PORT:-6379}
+      # JWT
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_SECRET_EXPIRY_TIME: ${JWT_SECRET_EXPIRY_TIME:-25200000}
+      JWT_SECRET_REFRESH_TIME: ${JWT_SECRET_REFRESH_TIME:-86400000}
+      # OpenAI / Azure AI
+      OPEN_AI_API_KEY: ${OPEN_AI_API_KEY}
+      OPEN_AI_API_URL: ${OPEN_AI_API_URL}
+      OPEN_AI_API_MODEL: ${OPEN_AI_API_MODEL:-gpt-4.1-mini}
+      OPEN_AI_API_TOKENS: ${OPEN_AI_API_TOKENS:-4096}
+      # Judge0
+      JUDGE_O_API_URL: ${JUDGE_O_API_URL}
+      JUDGE_O_API_HOST: ${JUDGE_O_API_HOST}
+      JUDGE_O_API_KEY: ${JUDGE_O_API_KEY}
+      # CORS
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:5173}
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - prep-ai-net
 
 volumes:
-  pg_data:
+  redis_data:
+
+networks:
+  prep-ai-net:
+    driver: bridge

@@ -18,8 +18,6 @@ public class ResourceController {
 
     private final ResourceService resourceService;
 
-    // ── POST /api/v1/resources/generate ──────────────────────────
-    // Full customised generation with all options
     @PostMapping("/generate")
     public ResponseEntity<ResourcesResponse> generateResources(
             @RequestBody ResourceRequest request,
@@ -27,9 +25,6 @@ public class ResourceController {
         return ResponseEntity.ok(resourceService.generateResources(request, user));
     }
 
-    // ── GET /api/v1/resources ─────────────────────────────────────
-    // Called on page load — generates with all categories + defaults
-    // This is what your frontend calls when the page first opens
     @GetMapping
     public ResponseEntity<ResourcesResponse> getResources(
             @RequestParam(required = false) String depth,
@@ -44,9 +39,6 @@ public class ResourceController {
         return ResponseEntity.ok(resourceService.generateResources(request, user));
     }
 
-    // ── GET /api/v1/resources/category/{category} ─────────────────
-    // Called when user clicks a specific category tab
-    // e.g. GET /api/v1/resources/category/DSA
     @GetMapping("/category/{category}")
     public ResponseEntity<ResourcesResponse> getByCategory(
             @PathVariable String category,
@@ -60,8 +52,6 @@ public class ResourceController {
         return ResponseEntity.ok(resourceService.generateResources(request, user));
     }
 
-    // ── DELETE /api/v1/resources/cache ────────────────────────────
-    // Force refresh — clears cached result for this user
     @DeleteMapping("/cache")
     public ResponseEntity<Void> clearCache(@AuthenticationPrincipal User user) {
         resourceService.invalidateCache(user);

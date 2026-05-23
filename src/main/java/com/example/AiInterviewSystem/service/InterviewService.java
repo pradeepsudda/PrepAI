@@ -70,7 +70,6 @@ public class InterviewService {
                 && questionCount % 3 == 0
                 && questionCount > 0;
  
-        // ✅ Now returns GeneratedQuestion (not plain String)
         GeneratedQuestion generated;
         if (generateFollowUp) {
             FollowUpRequest followUp = FollowUpRequest.builder()
@@ -95,10 +94,8 @@ public class InterviewService {
             throw new AIResponseException("AI returned empty question");
         }
  
-        // ✅ Parse mode from AI response
         QuestionMode mode = generated.parsedMode();
  
-        // ✅ Auto time limit: CODE gets 1800s, VOICE gets type-based limit
         int timeLimit = mode == QuestionMode.CODE
                 ? 1800
                 : resolveVoiceTimeLimit(session.getSessionType());
@@ -109,8 +106,8 @@ public class InterviewService {
                 .questionType(session.getSessionType().name())
                 .orderIndex(questionCount)
                 .timeLimitSec(timeLimit)
-                .questionMode(mode)                              // ✅ NEW
-                .suggestedLanguage(generated.getSuggestedLanguage())  // ✅ NEW
+                .questionMode(mode)
+                .suggestedLanguage(generated.getSuggestedLanguage())
                 .build();
  
         question = questionRepository.save(question);
@@ -136,13 +133,12 @@ public class InterviewService {
             throw new IllegalStateException("This question has already been answered");
         }
  
-        // ✅ Pass questionMode to evaluation so AI applies correct rubric
         EvaluationRequest evalRequest = EvaluationRequest.builder()
                 .questionText(question.getQuestionText())
                 .questionType(question.getQuestionType())
                 .difficulty(session.getDifficulty())
                 .answerText(request.getAnswerText())
-                .questionMode(question.getQuestionMode().name())  // ✅ NEW
+                .questionMode(question.getQuestionMode().name())
                 .build();
  
         AnswerEvaluation evaluation = aiService.evaluateAnswer(evalRequest).block();
@@ -214,8 +210,7 @@ public class InterviewService {
                 .questionsAndAnswers(qaList).build();
     }
  
-    // ─── Helpers ─────────────────────────────────────────────────────────────
- 
+
     private InterviewSession getSessionAndVerifyOwner(UUID sessionId, User user) {
         InterviewSession s = sessionRepository.findById(sessionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Session not found: " + sessionId));
@@ -248,7 +243,6 @@ public class InterviewService {
         };
     }
  
-    // Voice-mode time limits per session type
     private int resolveVoiceTimeLimit(SessionType type) {
         return switch (type) {
             case DSA           -> 300;
@@ -279,8 +273,8 @@ public class InterviewService {
                 .id(q.getId()).questionText(q.getQuestionText()).questionType(q.getQuestionType())
                 .orderIndex(q.getOrderIndex()).timeLimitSec(q.getTimeLimitSec())
                 .currentNumber(num).totalQuestions(total)
-                .questionMode(q.getQuestionMode())           // ✅ NEW
-                .suggestedLanguage(q.getSuggestedLanguage()) // ✅ NEW
+                .questionMode(q.getQuestionMode())
+                .suggestedLanguage(q.getSuggestedLanguage())
                 .build();
     }
  

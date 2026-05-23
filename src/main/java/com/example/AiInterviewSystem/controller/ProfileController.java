@@ -15,14 +15,12 @@ import org.springframework.web.bind.annotation.*;
 public class ProfileController {
  
     private final ProfileService profileService;
- 
-    // GET /api/v1/profile
+
     @GetMapping
     public ResponseEntity<ProfileDto> getProfile(@AuthenticationPrincipal User user) {
         return ResponseEntity.ok(profileService.getProfile(user));
     }
  
-    // PUT /api/v1/profile
     @PutMapping
     public ResponseEntity<ProfileDto> updateProfile(
             @Valid @RequestBody UpdateProfileRequest request,
@@ -30,7 +28,6 @@ public class ProfileController {
         return ResponseEntity.ok(profileService.updateProfile(request, user));
     }
  
-    // PATCH /api/v1/profile/password
     @PatchMapping("/password")
     public ResponseEntity<Void> changePassword(
             @Valid @RequestBody ChangePasswordRequest request,
@@ -39,7 +36,6 @@ public class ProfileController {
         return ResponseEntity.noContent().build();
     }
  
-    // DELETE /api/v1/profile
     @DeleteMapping
     public ResponseEntity<Void> deleteAccount(
             @RequestParam String confirmPassword,

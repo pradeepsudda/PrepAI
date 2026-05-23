@@ -24,7 +24,6 @@ public class CodingChallenge {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
  
-    // Optional — links challenge to a specific interview session
     @Column(name = "session_id")
     private UUID sessionId;
 

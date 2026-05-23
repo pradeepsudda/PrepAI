@@ -38,33 +38,28 @@ export default function HybridInterviewPage() {
     },
   })
  
-  // ── Derive mode from current question ────────────────────────
   const isCodeMode  = currentQuestion?.questionMode === 'CODE'
   const isVoiceMode = currentQuestion?.questionMode === 'VOICE' || !currentQuestion?.questionMode
  
-  // ── On mount: fetch first question ───────────────────────────
-  useEffect(() => { fetchQuestion() }, []) // eslint-disable-line
+  useEffect(() => { fetchQuestion() }, []) 
  
-  // ── When question arrives: read aloud + start timer ──────────
   useEffect(() => {
     if (currentQuestion && phase === 'question') {
-      // Only speak for VOICE questions — CODE questions don't need TTS
       if (isVoiceMode) speak(currentQuestion.questionText)
       resetTimer()
       startTimer()
     }
-  }, [currentQuestion?.id]) // eslint-disable-line
+  }, [currentQuestion?.id]) 
  
-  // ── Navigate to review when session complete ─────────────────
   useEffect(() => {
     if (phase === 'completed' && summary) {
       navigate(`/sessions/${sessionId}`, { replace: true })
     }
-  }, [phase, summary]) // eslint-disable-line
+  }, [phase, summary])
  
   const handleStartAnswering = () => {
-    stop()           // stop TTS if reading question
-    startAnswering() // sets phase to 'answering' or 'coding' based on mode
+    stop()           
+    startAnswering() 
     if (isVoiceMode) startListening()
   }
  

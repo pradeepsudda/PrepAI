@@ -37,14 +37,11 @@ public class InterviewQuestion {
     @Builder.Default
     private int timeLimitSec = 300;
  
-    // ✅ NEW — determines which UI the frontend renders
     @Enumerated(EnumType.STRING)
     @Column(name = "question_mode", nullable = false)
     @Builder.Default
     private QuestionMode questionMode = QuestionMode.VOICE;
- 
-    // ✅ NEW — hints which language to pre-select in Monaco
-    // null for VOICE questions
+
     @Column(name = "suggested_language", length = 50)
     private String suggestedLanguage;
  

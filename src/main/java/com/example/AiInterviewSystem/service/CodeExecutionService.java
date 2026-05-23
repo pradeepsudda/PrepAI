@@ -75,9 +75,7 @@ public class CodeExecutionService {
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Challenge not found: " + request.getChallengeId()));
 
-        @SuppressWarnings("unchecked")
-        List<Map<String, String>> testCases =
-                (List<Map<String, String>>) challenge.getTestCases();
+        List<Map<String, String>> testCases = challenge.getTestCases();
 
         List<TestCaseResult> results = new ArrayList<>();
         int passed = 0;
@@ -332,7 +330,7 @@ public class CodeExecutionService {
         if (value == null || value.isBlank()) return null;
         try {
             return new String(
-                    Base64.getDecoder().decode(value.trim()),
+                    Base64.getMimeDecoder().decode(value.trim()),
                     StandardCharsets.UTF_8
             ).trim();
         } catch (IllegalArgumentException e) {

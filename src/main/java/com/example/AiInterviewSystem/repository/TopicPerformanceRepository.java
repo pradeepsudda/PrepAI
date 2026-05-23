@@ -13,10 +13,4 @@ public interface TopicPerformanceRepository extends JpaRepository<TopicPerforman
  
     Optional<TopicPerformance> findByUserIdAndTopicAndSessionType(
             UUID userId, String topic, String sessionType);
- 
-    // Top N weak topics for a user (used for recommended practice)
-    List<TopicPerformance> findTop5ByUserIdOrderByAvgScoreAsc(UUID userId);
- 
-    // Top N strong topics
-    List<TopicPerformance> findTop5ByUserIdOrderByAvgScoreDesc(UUID userId);
 }

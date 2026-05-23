@@ -23,9 +23,7 @@ public class ResumeService {
  
     private final AIOrchestrationService aiService;
     private final ObjectMapper           objectMapper;
- 
-    // ─── Parse uploaded resume → structured profile ──────────────────────────
- 
+
     public ResumeProfile parseResume(MultipartFile file) throws IOException {
         log.info("Parsing resume: {}", file.getOriginalFilename());
  
@@ -39,7 +37,6 @@ public class ResumeService {
             throw new RuntimeException("AI returned empty response for resume parsing");
         }
  
-        // Strip markdown code fences if the model adds them
         String clean = json.replaceAll("```json", "").replaceAll("```", "").trim();
  
         try {
@@ -49,16 +46,13 @@ public class ResumeService {
             throw new RuntimeException("Failed to parse resume profile from AI response");
         }
     }
- 
-    // ─── Use parsed profile to build a personalised session request ──────────
- 
+
     public CreateSessionRequest buildPersonalisedSession(
             ResumeProfile profile,
             SessionType sessionType) {
  
         Difficulty difficulty = mapExperienceToDifficulty(profile.getExperienceYears());
  
-        // Pick the most relevant topic from resume focus areas
         String primaryTopic = profile.getFocusAreas() != null && !profile.getFocusAreas().isEmpty()
                 ? profile.getFocusAreas().get(0)
                 : "general";
@@ -80,9 +74,7 @@ public class ResumeService {
         request.setContext(context);
         return request;
     }
- 
-    // ─── Extract plain text from PDF or plain-text files ────────────────────
- 
+
     private String extractText(MultipartFile file) throws IOException {
         String contentType = file.getContentType();
         if (contentType == null) contentType = "";
@@ -96,8 +88,6 @@ public class ResumeService {
                 return stripper.getText(document);
             }
         }
- 
-        // Fallback: treat as plain text (txt, doc, etc.)
         return new String(file.getBytes());
     }
  

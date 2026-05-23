@@ -7,13 +7,13 @@ import com.example.AiInterviewSystem.dto.GeneratedQuestion;
 import com.example.AiInterviewSystem.dto.QuestionRequest;
 import com.example.AiInterviewSystem.dto.ResourceRequest;
 import com.example.AiInterviewSystem.dto.ResourcesResponse;
-import com.example.AiInterviewSystem.enums.QuestionMode;
 import com.example.AiInterviewSystem.enums.SessionType;
 import com.example.AiInterviewSystem.exceptions.AIResponseException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
@@ -40,18 +40,14 @@ public class AIOrchestrationService {
  
     @Value("${ai.openai.max-tokens}")
     private int maxTokens;
- 
-    // ─── Generate question — returns GeneratedQuestion (with mode) ───────────
- 
+
     public Mono<GeneratedQuestion> generateQuestion(QuestionRequest request) {
         String systemPrompt = buildSystemPrompt(request.getSessionType());
         String userPrompt   = buildQuestionPrompt(request);
         return callOpenAI(systemPrompt, userPrompt)
                 .map(this::parseGeneratedQuestion);
     }
- 
-    // ─── Generate follow-up — also returns GeneratedQuestion ────────────────
- 
+
     public Mono<GeneratedQuestion> generateFollowUp(FollowUpRequest request) {
         String systemPrompt = """
                 You are an expert technical interviewer.
@@ -83,9 +79,7 @@ public class AIOrchestrationService {
         return callOpenAI(systemPrompt, userPrompt)
                 .map(this::parseGeneratedQuestion);
     }
- 
-    // ─── Evaluate answer — handles both VOICE transcript and CODE text ────────
- 
+
     public Mono<AnswerEvaluation> evaluateAnswer(EvaluationRequest request) {
         String systemPrompt = """
                 You are a senior technical interviewer evaluating a candidate's answer.
@@ -135,9 +129,7 @@ public class AIOrchestrationService {
         return callOpenAI(systemPrompt, userPrompt)
                 .map(this::parseEvaluation);
     }
- 
-    // ─── Resume parsing ───────────────────────────────────────────────────────
- 
+
     public Mono<String> parseResume(String resumeText) {
         String systemPrompt = """
                 You extract structured data from resume text.
@@ -158,9 +150,7 @@ public class AIOrchestrationService {
                 """, resumeText);
         return callOpenAI(systemPrompt, userPrompt);
     }
- 
-    // ─── Core OpenAI / GitHub Models call ────────────────────────────────────
- 
+
     @SuppressWarnings("unchecked")
     private Mono<String> callOpenAI(String systemPrompt, String userPrompt) {
         var requestBody = Map.of(
@@ -179,10 +169,10 @@ public class AIOrchestrationService {
                 .header("Content-Type",  "application/json")
                 .bodyValue(requestBody)
                 .retrieve()
-                .onStatus(status -> status.is4xxClientError(), response ->
+                .onStatus(HttpStatusCode::is4xxClientError, response ->
                         response.bodyToMono(String.class)
                                 .map(body -> new AIResponseException("AI 4xx: " + body)))
-                .onStatus(status -> status.is5xxServerError(), response ->
+                .onStatus(HttpStatusCode::is5xxServerError, response ->
                         response.bodyToMono(String.class)
                                 .map(body -> new AIResponseException("AI 5xx: " + body)))
                 .bodyToMono(Map.class)
@@ -193,16 +183,13 @@ public class AIOrchestrationService {
                 })
                 .doOnError(e -> log.error("AI API error: {}", e.getMessage()));
     }
- 
-    // ─── Parsers ─────────────────────────────────────────────────────────────
- 
+
     private GeneratedQuestion parseGeneratedQuestion(String json) {
         try {
             String clean = json.replaceAll("```json", "").replaceAll("```", "").trim();
             return objectMapper.readValue(clean, GeneratedQuestion.class);
         } catch (Exception e) {
             log.error("Failed to parse generated question JSON: {}\nRaw: {}", e.getMessage(), json);
-            // Fallback: treat entire response as plain-text VOICE question
             GeneratedQuestion fallback = new GeneratedQuestion();
             fallback.setQuestionText(json.replaceAll("[{}\"\\[\\]]", "").trim());
             fallback.setQuestionMode("VOICE");
@@ -220,9 +207,7 @@ public class AIOrchestrationService {
             throw new AIResponseException("Failed to parse AI evaluation response");
         }
     }
- 
-    // ─── System prompts ───────────────────────────────────────────────────────
- 
+
     private String buildSystemPrompt(SessionType type) {
         String jsonSchema = """
                 You MUST respond with ONLY this JSON — no markdown, no preamble, no extra text:
@@ -338,86 +323,6 @@ public class AIOrchestrationService {
             """;
     }
 
-//    private String buildResourceUserPrompt(ResourceRequest request) {
-//        String cats  = request.getCategories() != null
-//                ? String.join(", ", request.getCategories()) : "DSA, SYSTEM_DESIGN, BEHAVIORAL";
-//
-//        String depth = switch (request.getPrepDepth() != null ? request.getPrepDepth() : "THOROUGH") {
-//            case "QUICK"         -> "focused 1-2 week sprint, highest-impact resources only (max 3 sections, 3 resources each)";
-//            case "COMPREHENSIVE" -> "in-depth 2-3 month plan, cover everything thoroughly (6 sections, 5+ resources each)";
-//            default              -> "solid 4-6 week plan balancing breadth and depth (5 sections, 4-5 resources each)";
-//        };
-//
-//        String level = request.getAvgScore() < 40  ? "BEGINNER (needs fundamentals first)" :
-//                request.getAvgScore() < 65  ? "INTERMEDIATE (knows basics, needs patterns and practice)" :
-//                        request.getAvgScore() < 80  ? "UPPER-INTERMEDIATE (needs advanced topics + mock interviews)" :
-//                                "ADVANCED (needs polish, edge cases, and system design depth)";
-//
-//        return String.format("""
-//            Generate a personalised interview preparation resource guide.
-//
-//            CANDIDATE DATA:
-//            - Categories needed: %s
-//            - Weakest category: %s  ← PRIORITISE THIS
-//            - Strongest category: %s
-//            - Average score: %.1f/100 → Level: %s
-//            - Sessions completed: %d
-//            - Specific topic requested: %s
-//            - Prep depth: %s
-//
-//            PERSONALISATION RULES:
-//            - Score < 40: Start with fundamentals, avoid advanced content
-//            - Score 40-65: Focus on pattern recognition and common interview problems
-//            - Score 65-80: Focus on hard problems, system design depth, behavioral polish
-//            - Score > 80: Focus on mock interviews, rare edge cases, leadership questions
-//            - ALWAYS put the weakest category's section first (priority: 1)
-//            - Mark isPriority: true for the 2 best resources in each section
-//            - whyRecommended must reference the candidate's specific score/weakness
-//
-//            Respond ONLY with this JSON (no extra text):
-//            {
-//              "personalizedSummary": "<2-3 sentences about this candidate's profile, their score, and what they need most>",
-//              "studyPlan": "<3-phase concrete plan: Phase 1 (week 1-2), Phase 2 (week 3-4), Phase 3 (week 5+) with specific actions>",
-//              "estimatedPrepTime": "<realistic estimate e.g. 4-6 weeks>",
-//              "quickWins": [
-//                "<one concrete action to do TODAY — be specific>",
-//                "<one action for THIS WEEK — be specific>",
-//                "<one action before the interview — be specific>"
-//              ],
-//              "sections": [
-//                {
-//                  "sectionTitle": "<specific topic e.g. 'Dynamic Programming Patterns'>",
-//                  "sectionDescription": "<why this section matters for their interviews and their current weakness>",
-//                  "priority": <1-5>,
-//                  "resources": [
-//                    {
-//                      "title": "<resource title>",
-//                      "description": "<what it covers, what makes it useful for interviews>",
-//                      "type": "<ARTICLE|VIDEO|COURSE|BOOK|PRACTICE|DOCUMENTATION|REPO>",
-//                      "difficulty": "<BEGINNER|INTERMEDIATE|ADVANCED>",
-//                      "estimatedTime": "<e.g. 45 min video, 1 week practice>",
-//                      "url": "<exact URL from approved list>",
-//                      "platform": "<platform name>",
-//                      "topics": ["<specific topic 1>", "<specific topic 2>"],
-//                      "whyRecommended": "<1 sentence specific to this candidate's score/weakness>",
-//                      "isPriority": <true|false>
-//                    }
-//                  ]
-//                }
-//              ]
-//            }
-//            """,
-//                cats,
-//                request.getWeakestCategory() != null ? request.getWeakestCategory() : "DSA",
-//                request.getStrongestCategory() != null ? request.getStrongestCategory() : "Unknown",
-//                request.getAvgScore(),
-//                level,
-//                request.getTotalSessions(),
-//                request.getSpecificTopic() != null ? request.getSpecificTopic() : "none",
-//                depth
-//        );
-//    }
-
     private String buildResourceUserPrompt(ResourceRequest request) {
         String cats  = request.getCategories() != null
                 ? String.join(", ", request.getCategories()) : "DSA, SYSTEM_DESIGN, BEHAVIORAL";
@@ -503,16 +408,6 @@ public class AIOrchestrationService {
         );
     }
 
-//    private ResourcesResponse parseResourcesResponse(String json) {
-//        try {
-//            String clean = json.replaceAll("```json", "").replaceAll("```", "").trim();
-//            return objectMapper.readValue(clean, ResourcesResponse.class);
-//        } catch (Exception e) {
-//            log.error("Failed to parse resources JSON: {}\nRaw: {}", e.getMessage(), json);
-//            throw new AIResponseException("Failed to parse AI resources response");
-//        }
-//    }
-
     private ResourcesResponse parseResourcesResponse(String json) {
         try {
             String clean = json.replaceAll("```json", "").replaceAll("```", "").trim();
@@ -521,18 +416,15 @@ public class AIOrchestrationService {
         } catch (com.fasterxml.jackson.core.io.JsonEOFException |
                  com.fasterxml.jackson.databind.exc.MismatchedInputException e) {
 
-            // ── Truncated response — try to salvage what was parsed ──
             log.warn("AI response was truncated (hit token limit). Attempting partial parse. Error: {}", e.getMessage());
 
             try {
-                // Try fixing truncation: close any open strings, arrays, objects
                 String clean   = json.replaceAll("```json", "").replaceAll("```", "").trim();
                 String repaired = repairTruncatedJson(clean);
                 return objectMapper.readValue(repaired, ResourcesResponse.class);
 
             } catch (Exception inner) {
                 log.error("Partial parse also failed: {}", inner.getMessage());
-                // Return a minimal fallback so frontend doesn't crash
                 ResourcesResponse fallback = new ResourcesResponse();
                 fallback.setPersonalizedSummary(
                         "Resource generation was interrupted. Please try again or reduce the number of categories.");
@@ -553,9 +445,7 @@ public class AIOrchestrationService {
         }
     }
 
-    // Best-effort JSON repair for truncated responses
     private String repairTruncatedJson(String json) {
-        // Count open braces and brackets to figure out what needs closing
         int openBraces   = 0;
         int openBrackets = 0;
         boolean inString = false;
@@ -573,12 +463,8 @@ public class AIOrchestrationService {
         }
 
         StringBuilder sb = new StringBuilder(json);
-
-        // If we're mid-string, close it
         if (inString) sb.append("\"");
 
-        // Close open arrays and objects in reverse order
-        // Walk back to find last valid position
         for (int i = 0; i < openBrackets; i++) sb.append("]");
         for (int i = 0; i < openBraces;   i++) sb.append("}");
 

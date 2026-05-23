@@ -26,10 +26,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                 .setAllowedOriginPatterns("*")
                 .withSockJS();
     }
- 
-    // ✅ THIS IS THE KEY FIX
-    // Register interceptor on the inbound channel so every STOMP frame
-    // goes through JWT validation before reaching @MessageMapping methods
+
     @Override
     public void configureClientInboundChannel(ChannelRegistration registration) {
         registration.interceptors(webSocketAuthInterceptor);

@@ -27,9 +27,7 @@ public class AuthService {
     private final PasswordEncoder       passwordEncoder;
     private final JwtService            jwtService;
     private final AuthenticationManager authenticationManager;
- 
-    // ─── Register ────────────────────────────────────────────────────────────
- 
+
     @Transactional
     public AuthResponse register(RegisterRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
@@ -49,11 +47,8 @@ public class AuthService {
         String token = jwtService.generateToken(user);
         return new AuthResponse(token, mapToUserDto(user));
     }
- 
-    // ─── Login ───────────────────────────────────────────────────────────────
- 
+
     public AuthResponse login(LoginRequest request) {
-        // Throws BadCredentialsException if wrong credentials — Spring handles it
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         request.getEmail().toLowerCase().trim(),
@@ -68,16 +63,12 @@ public class AuthService {
         log.info("User logged in: {}", user.getEmail());
         return new AuthResponse(token, mapToUserDto(user));
     }
- 
-    // ─── Get current user profile ────────────────────────────────────────────
- 
+
     @Transactional(readOnly = true)
     public UserDto getProfile(User user) {
         return mapToUserDto(user);
     }
- 
-    // ─── Change password ─────────────────────────────────────────────────────
- 
+
     @Transactional
     public void changePassword(ChangePasswordRequest request, User user) {
         if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
@@ -87,9 +78,7 @@ public class AuthService {
         userRepository.save(user);
         log.info("Password changed for user: {}", user.getEmail());
     }
- 
-    // ─── Update profile ───────────────────────────────────────────────────────
- 
+
     @Transactional
     public UserDto updateProfile(UpdateProfileRequest request, User user) {
         if (request.getFullName() != null && !request.getFullName().isBlank()) {

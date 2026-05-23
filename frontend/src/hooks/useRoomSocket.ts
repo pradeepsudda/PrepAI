@@ -6,7 +6,7 @@ import type { ChatMessage, WebRtcSignalMsg,  } from '@/types'
 export function useRoomSocket(
   roomId:          string,
   token:           string,
-  onLanguageChange?: (lang: string) => void,   // ← NEW callback for language sync
+  onLanguageChange?: (lang: string) => void, 
 ) {
   const clientRef        = useRef<Client | null>(null)
   const isConnectedRef   = useRef(false)
@@ -17,14 +17,15 @@ export function useRoomSocket(
   const [connected,    setConnected]    = useState(false)
   const [error,        setError]        = useState<string | null>(null)
  
-  // WebRTC signal callback — set by useRoomAudio hook
   const onWebRtcSignalRef = useRef<((signal: WebRtcSignalMsg) => void) | null>(null)
+
+  const BASE_URL = import.meta.env.VITE_API_BASE_URL
  
   useEffect(() => {
     if (!roomId || !token) return
  
     const client = new Client({
-      webSocketFactory: () => new SockJS('http://localhost:8080/ws'),
+      webSocketFactory: () => new SockJS(`${BASE_URL}/ws`),
       connectHeaders:   { Authorization: `Bearer ${token}` },
       reconnectDelay:   3000,
  
@@ -34,40 +35,32 @@ export function useRoomSocket(
         setError(null)
         console.log('✅ WebSocket connected, room:', roomId)
  
-        // ── Chat messages ──────────────────────────────────────
         client.subscribe(`/topic/room/${roomId}/messages`, (msg) => {
           setMessages(prev => [...prev, JSON.parse(msg.body)])
         })
  
-        // ── Room events (join/leave) ───────────────────────────
         client.subscribe(`/topic/room/${roomId}/events`, (msg) => {
           const event = JSON.parse(msg.body)
           console.log('Room event:', event.type, event.participants)
  
-          // ✅ FIX — REPLACE the entire participant list with the
-          // authoritative list from the server (not append one user)
           if (event.participants && Array.isArray(event.participants)) {
             setParticipants(event.participants)
           }
         })
  
-        // ── Code + language changes ────────────────────────────
         client.subscribe(`/topic/room/${roomId}/code`, (msg) => {
           const event = JSON.parse(msg.body)
           setSharedCode(event.code)
-          // ✅ FIX — propagate language change to RoomPage
           if (event.language && onLanguageChange) {
             onLanguageChange(event.language)
           }
         })
  
-        // ── WebRTC signaling (per-user queue) ──────────────────
         client.subscribe(`/user/queue/webrtc`, (msg) => {
           const signal = JSON.parse(msg.body)
           onWebRtcSignalRef.current?.(signal)
         })
  
-        // Announce join
         client.publish({
           destination: `/app/room/${roomId}/join`,
           body:        JSON.stringify({}),
@@ -104,7 +97,7 @@ export function useRoomSocket(
       isConnectedRef.current = false
       client.deactivate()
     }
-  }, [roomId, token]) // eslint-disable-line
+  }, [roomId, token]) 
  
   const sendMessage = useCallback((text: string) => {
     if (!clientRef.current?.connected) return
@@ -114,7 +107,6 @@ export function useRoomSocket(
     })
   }, [roomId])
  
-  // ✅ Now includes language — both code AND lang sync
   const syncCode = useCallback((code: string, language: string) => {
     if (!clientRef.current?.connected) return
     clientRef.current.publish({
@@ -123,7 +115,6 @@ export function useRoomSocket(
     })
   }, [roomId])
  
-  // Send a WebRTC signal to a specific peer
   const sendWebRtcSignal = useCallback((type: string, to: string, payload: unknown) => {
     if (!clientRef.current?.connected) return
     clientRef.current.publish({
@@ -141,6 +132,6 @@ export function useRoomSocket(
     sendMessage,
     syncCode,
     sendWebRtcSignal,
-    onWebRtcSignalRef,   // exposed so useRoomAudio can register its callback
+    onWebRtcSignalRef,  
   }
 }

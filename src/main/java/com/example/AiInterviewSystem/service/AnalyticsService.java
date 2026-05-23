@@ -28,9 +28,7 @@ public class AnalyticsService {
     private final InterviewSessionRepository sessionRepository;
     private final InterviewAnswerRepository answerRepository;
     private final TopicPerformanceRepository topicRepository;
- 
-    // ─── Full dashboard for the logged-in user ───────────────────────────────
- 
+
     @Transactional(readOnly = true)
     public UserAnalyticsDashboard getDashboard(User user) {
         UUID userId = user.getId();
@@ -38,8 +36,7 @@ public class AnalyticsService {
  
         List<InterviewSession> sessions =
                 sessionRepository.findByUserIdAndStartedAtAfter(userId, since);
- 
-        // Daily score trend (last 30 days)
+
         List<ScorePoint> scoreTrend = sessions.stream()
                 .filter(s -> s.getOverallScore() != null)
                 .collect(Collectors.groupingBy(
@@ -53,7 +50,6 @@ public class AnalyticsService {
                         round(e.getValue())))
                 .toList();
  
-        // Per-category average scores
         Map<String, Double> categoryScores = sessions.stream()
                 .filter(s -> s.getOverallScore() != null)
                 .collect(Collectors.groupingBy(
@@ -61,7 +57,6 @@ public class AnalyticsService {
                         Collectors.averagingDouble(s -> s.getOverallScore().doubleValue())
                 ));
  
-        // Best + weakest topics
         List<TopicPerformance> topics = topicRepository.findByUserId(userId);
         List<String> strongTopics = topics.stream()
                 .filter(t -> t.getAvgScore() != null && t.getAvgScore().doubleValue() >= 75)
@@ -70,16 +65,12 @@ public class AnalyticsService {
                 .filter(t -> t.getAvgScore() != null && t.getAvgScore().doubleValue() < 60)
                 .map(TopicPerformance::getTopic).toList();
  
-        // Global average score
         double globalAvg = sessions.stream()
                 .filter(s -> s.getOverallScore() != null)
                 .mapToDouble(s -> s.getOverallScore().doubleValue())
                 .average().orElse(0.0);
  
-        // Total sessions (all time)
         long totalAllTime = sessionRepository.countByUserId(userId);
- 
-        // Completion rate (last 30 days)
         long completed = sessions.stream()
                 .filter(s -> s.getStatus().name().equals("COMPLETED")).count();
         double completionRate = sessions.isEmpty() ? 0.0
@@ -96,9 +87,7 @@ public class AnalyticsService {
                 .weakTopics(weakTopics)
                 .build();
     }
- 
-    // ─── Update topic performance after session completes ───────────────────
- 
+
     @Transactional
     public void updateTopicPerformance(UUID sessionId, User user) {
         List<InterviewAnswer> answers = answerRepository.findBySessionId(sessionId);
@@ -117,7 +106,6 @@ public class AnalyticsService {
                             .attempts(0)
                             .build());
  
-            // Recalculate rolling average
             int newAttempts = tp.getAttempts() + 1;
             double currentAvg = tp.getAvgScore() != null ? tp.getAvgScore().doubleValue() : 0.0;
             double newScore   = answer.getOverallScore() != null ? answer.getOverallScore().doubleValue() : 0.0;

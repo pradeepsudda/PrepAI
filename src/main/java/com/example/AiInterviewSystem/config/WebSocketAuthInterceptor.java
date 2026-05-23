@@ -27,7 +27,6 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
         StompHeaderAccessor accessor =
             MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
  
-        // Only process CONNECT frames — this is where the JWT comes in
         if (accessor != null && StompCommand.CONNECT.equals(accessor.getCommand())) {
             String authHeader = accessor.getFirstNativeHeader("Authorization");
  
@@ -40,8 +39,6 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
                             userDetailsService.loadUserByUsername(username);
  
                         if (jwtService.isTokenValid(token, userDetails)) {
-                            // Set authenticated principal on the STOMP session
-                            // This is what makes principal.getName() work in controllers
                             UsernamePasswordAuthenticationToken auth =
                                 new UsernamePasswordAuthenticationToken(
                                     userDetails,
@@ -54,8 +51,6 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
                     }
                 } catch (Exception e) {
                     log.warn("WebSocket JWT validation failed: {}", e.getMessage());
-                    // Connection proceeds but principal stays null
-                    // Controller null-checks will handle this gracefully
                 }
             } else {
                 log.warn("WebSocket CONNECT missing Authorization header");

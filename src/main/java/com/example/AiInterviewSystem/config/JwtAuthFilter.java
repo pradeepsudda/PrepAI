@@ -43,10 +43,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         }
 
         final String jwt = authHeader.substring(7);
-
-        // ✅ FIX: Catch ExpiredJwtException SEPARATELY and return 401 immediately
-        // Previously: one catch(Exception e) → logged warning → continued filter chain
-        // → Spring Security returned 403 (not 401) → axios interceptor missed it
         try {
             final String userEmail = jwtService.extractUsername(jwt);
 
@@ -70,21 +66,16 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             }
 
         } catch (ExpiredJwtException e) {
-            // ✅ Token expired → write 401 JSON and STOP the filter chain
-            // The 'return' here is critical — without it the request continues
-            // and Spring Security returns 403 instead of 401
             log.warn("Expired JWT for [{}]: {}", request.getRequestURI(), e.getMessage());
             write401(response, "Token has expired. Please log in again.");
-            return;  // ← stops here, controller never reached
+            return;
 
         } catch (JwtException e) {
-            // Malformed, unsupported, invalid signature etc.
             log.warn("Invalid JWT for [{}]: {}", request.getRequestURI(), e.getMessage());
             write401(response, "Invalid token. Please log in again.");
             return;
 
         } catch (Exception e) {
-            // Unexpected error (e.g. user not found) — log and let Spring handle it
             log.error("JWT processing error for [{}]: {}", request.getRequestURI(), e.getMessage());
         }
 
@@ -95,7 +86,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);  // 401
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
-        // Standard header for expired/invalid tokens
         response.setHeader("WWW-Authenticate", "Bearer error=\"invalid_token\"");
         response.getWriter().write(
                 "{\"status\":401,\"error\":\"Unauthorized\",\"message\":\"" + message + "\"}"
