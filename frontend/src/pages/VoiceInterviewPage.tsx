@@ -35,17 +35,15 @@ export default function VoiceInterviewPage() {
     },
   })
  
-  // On mount: fetch first question
-  useEffect(() => { fetchQuestion() }, []) // eslint-disable-line
+  useEffect(() => { fetchQuestion() }, [])
  
-  // When a new question arrives: read it aloud + start timer
   useEffect(() => {
     if (currentQuestion && phase === 'question') {
       speak(currentQuestion.questionText)
       resetTimer()
       startTimer()
     }
-  }, [currentQuestion?.id]) // eslint-disable-line
+  }, [currentQuestion?.id])
  
   const handleStartAnswer = () => {
     stop()
@@ -66,7 +64,6 @@ export default function VoiceInterviewPage() {
     ? currentQuestion.currentNumber >= currentQuestion.totalQuestions
     : false
  
-  // ── Completed state ───────────────────────────────────────────
   if (phase === 'completed' && summary) {
     navigate(`/sessions/${sessionId}`, { replace: true })
     return null

@@ -31,7 +31,6 @@ public class ResourceService {
     public ResourcesResponse generateResources(ResourceRequest request, User user) {
         ResourceRequest enriched = enrichWithAnalytics(request, user);
  
-        // Try cache first — each unique (user + categories + depth + topic) is cached
         String cacheKey = buildCacheKey(user.getId().toString(), enriched);
         try {
             Object cached = redisTemplate.opsForValue().get(cacheKey);
@@ -51,7 +50,6 @@ public class ResourceService {
             throw new AIResponseException("AI returned null resources response");
         }
  
-        // Cache result
         try {
             redisTemplate.opsForValue().set(cacheKey, response, CACHE_TTL);
         } catch (Exception e) {

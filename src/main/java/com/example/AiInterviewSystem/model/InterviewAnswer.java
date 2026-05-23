@@ -48,7 +48,6 @@ public class InterviewAnswer {
     @Column(name = "feedback_text", columnDefinition = "TEXT")
     private String feedbackText;
 
-    // PostgreSQL TEXT[] arrays stored as String[]
     @Column(name = "strengths", columnDefinition = "TEXT[]")
     private String[] strengths;
 

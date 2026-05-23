@@ -30,9 +30,7 @@ public class ProfileService {
     private final InterviewSessionRepository  sessionRepository;
     private final InterviewAnswerRepository   answerRepository;
     private final PasswordEncoder             passwordEncoder;
- 
-    // ─── Get full profile ────────────────────────────────────────
- 
+
     @Transactional(readOnly = true)
     public ProfileDto getProfile(User user) {
         return ProfileDto.builder()
@@ -55,12 +53,9 @@ public class ProfileService {
                 .stats(buildStats(user))
                 .build();
     }
- 
-    // ─── Update profile ──────────────────────────────────────────
- 
+
     @Transactional
     public ProfileDto updateProfile(UpdateProfileRequest request, User user) {
-        // Check email uniqueness if changing
         if (request.getEmail() != null
                 && !request.getEmail().equalsIgnoreCase(user.getEmail())
                 && userRepository.existsByEmail(request.getEmail())) {
@@ -85,9 +80,7 @@ public class ProfileService {
         log.info("Profile updated for user {}", user.getId());
         return getProfile(user);
     }
- 
-    // ─── Change password ─────────────────────────────────────────
- 
+
     @Transactional
     public void changePassword(ChangePasswordRequest request, User user) {
         if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
@@ -97,9 +90,7 @@ public class ProfileService {
         userRepository.save(user);
         log.info("Password changed for user {}", user.getId());
     }
- 
-    // ─── Delete account ──────────────────────────────────────────
- 
+
     @Transactional
     public void deleteAccount(String confirmPassword, User user) {
         if (!passwordEncoder.matches(confirmPassword, user.getPassword())) {
@@ -108,9 +99,7 @@ public class ProfileService {
         userRepository.delete(user);
         log.info("Account deleted for user {}", user.getId());
     }
- 
-    // ─── Build stats ─────────────────────────────────────────────
- 
+
     private ProfileStatsDto buildStats(User user) {
         List<InterviewSession> allSessions =
                 sessionRepository.findByUserIdOrderByStartedAtDesc(user.getId());
@@ -127,7 +116,6 @@ public class ProfileService {
         long completed  = allSessions.stream().filter(s -> s.getStatus() == SessionStatus.COMPLETED).count();
         long abandoned  = allSessions.stream().filter(s -> s.getStatus() == SessionStatus.ABANDONED).count();
  
-        // Score stats — only from completed sessions with scores
         List<Double> scores = allSessions.stream()
                 .filter(s -> s.getOverallScore() != null)
                 .map(s -> s.getOverallScore().doubleValue())
@@ -136,23 +124,19 @@ public class ProfileService {
         double avgScore  = scores.stream().mapToDouble(d -> d).average().orElse(0);
         double bestScore = scores.stream().mapToDouble(d -> d).max().orElse(0);
  
-        // Total questions answered
         List<InterviewAnswer> allAnswers = answerRepository.findBySessionIds(
                 allSessions.stream().map(InterviewSession::getId).toList()
         );
  
-        // Total practice time
         long totalMinutes = allSessions.stream()
                 .filter(s -> s.getStartedAt() != null && s.getCompletedAt() != null)
                 .mapToLong(s -> java.time.Duration.between(
                         s.getStartedAt(), s.getCompletedAt()).toMinutes())
                 .sum();
  
-        // Sessions per category
         Map<SessionType, Long> byType = allSessions.stream()
                 .collect(Collectors.groupingBy(InterviewSession::getSessionType, Collectors.counting()));
  
-        // Strongest / weakest category (by avg score)
         Map<String, Double> avgByType = allSessions.stream()
                 .filter(s -> s.getOverallScore() != null)
                 .collect(Collectors.groupingBy(
@@ -168,7 +152,6 @@ public class ProfileService {
                 .min(Map.Entry.comparingByValue())
                 .map(Map.Entry::getKey).orElse("—");
  
-        // Streak calculation
         int[] streaks = calculateStreaks(allSessions);
  
         return ProfileStatsDto.builder()
@@ -190,7 +173,6 @@ public class ProfileService {
                 .build();
     }
  
-    // Returns [currentStreak, longestStreak] in days
     private int[] calculateStreaks(List<InterviewSession> sessions) {
         if (sessions.isEmpty()) return new int[]{0, 0};
  
@@ -203,13 +185,11 @@ public class ProfileService {
         int current = 0, longest = 0, streak = 1;
         LocalDate today = LocalDate.now();
  
-        // Current streak: count backwards from today
         for (int i = 0; i < 365; i++) {
             if (activeDays.contains(today.minusDays(i))) current++;
             else break;
         }
  
-        // Longest streak: scan all days
         for (int i = 1; i < sortedDays.size(); i++) {
             if (sortedDays.get(i).equals(sortedDays.get(i - 1).plusDays(1))) {
                 streak++;

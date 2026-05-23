@@ -21,7 +21,6 @@ public class ResumeController {
  
     private final ResumeService resumeService;
  
-    // Upload and parse resume
     @PostMapping(value = "/parse", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ResumeProfile> parseResume(
             @RequestPart("file") MultipartFile file,
@@ -29,7 +28,6 @@ public class ResumeController {
         return ResponseEntity.ok(resumeService.parseResume(file));
     }
  
-    // Build a personalized session config from parsed profile
     @PostMapping("/personalise")
     public ResponseEntity<CreateSessionRequest> personaliseSession(
             @RequestBody ResumeProfile profile,

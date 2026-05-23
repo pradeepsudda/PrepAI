@@ -15,7 +15,5 @@ public interface InterviewQuestionRepository extends JpaRepository<InterviewQues
     int countBySessionId(UUID sessionId);
  
     Optional<InterviewQuestion> findTopBySessionIdOrderByOrderIndexDesc(UUID sessionId);
- 
-    @Query("SELECT q FROM InterviewQuestion q WHERE q.session.id = :sessionId ORDER BY q.orderIndex ASC")
-    List<InterviewQuestion> findAllBySessionOrdered(UUID sessionId);
+
 }

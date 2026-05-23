@@ -44,8 +44,12 @@ export default function RegisterPage() {
  
       <div className="relative w-full max-w-md animate-fade-in">
         <div className="flex flex-col items-center mb-8">
-          <div className="w-12 h-12 rounded-2xl bg-brand-600 flex items-center justify-center mb-3 shadow-lg shadow-brand-600/30">
-            <Brain size={24} className="text-white" />
+          <div className="w-40 h-30 rounded-lg overflow-hidden flex items-center justify-center">
+            <img
+              src="src/assets/prepai.png" 
+              alt="PrepAI Logo"
+              className="w-full h-full object-contain"
+            />
           </div>
           <h1 className="font-display text-2xl font-bold text-white">Create account</h1>
           <p className="text-gray-500 text-sm mt-1">Start your interview preparation</p>

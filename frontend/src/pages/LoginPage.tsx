@@ -43,16 +43,9 @@ export default function LoginPage() {
       <div className="relative w-full max-w-md animate-fade-in">
         {/* Logo */}
         <div className="flex flex-col items-center mb-8">
-          {/* <div className="w-12 h-12 rounded-2xl bg-brand-600 flex items-center justify-center mb-3 shadow-lg shadow-brand-600/30">
+          <div className="w-40 h-30 rounded-lg overflow-hidden flex items-center justify-center">
             <img
-              src="/prepai.png"   // or your generated image path
-              alt="PrepAI Logo"
-              className="w-full h-full object-contain"
-            />
-          </div> */}
-                    <div className="w-30 h-20 rounded-lg overflow-hidden flex items-center justify-center">
-            <img
-              src="/prepai.png"   // or your generated image path
+              src="src/assets/prepai.png"   // or your generated image path
               alt="PrepAI Logo"
               className="w-full h-full object-contain"
             />

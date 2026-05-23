@@ -46,12 +46,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       )}>
         {/* Logo */}
         <div className="flex items-center gap-2.5 px-5 py-5 border-b border-surface-border">
-          {/* <div className="w-8 h-8 rounded-lg bg-brand-600 flex items-center justify-center">
-            <Brain size={16} className="text-white" />
-          </div> */}
-          <div className="w-14 h-14 rounded-lg overflow-hidden flex items-center justify-center">
+          <div className="w-24 h-20 rounded-lg overflow-hidden flex items-center justify-center">
             <img
-              src="/prepai.png"   // or your generated image path
+              src="src/assets/prepai.png" 
               alt="PrepAI Logo"
               className="w-full h-full object-contain"
             />

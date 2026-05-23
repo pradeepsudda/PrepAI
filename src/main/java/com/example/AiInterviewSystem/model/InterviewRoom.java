@@ -21,7 +21,6 @@ public class InterviewRoom {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
  
-    // UUID of the user who created the room
     @Column(name = "host_id", nullable = false)
     private UUID hostId;
  
@@ -31,9 +30,7 @@ public class InterviewRoom {
     @Column(nullable = false)
     @Builder.Default
     private boolean active = true;
- 
-    // Stores participant email addresses
-    // Maps to PostgreSQL TEXT[] column
+
     @Column(name = "participants", columnDefinition = "TEXT[]")
     @Builder.Default
     private List<String> participants = new ArrayList<>();
