@@ -45,11 +45,17 @@ export default function HybridInterviewPage() {
  
   useEffect(() => {
     if (currentQuestion && phase === 'question') {
-      if (isVoiceMode) speak(currentQuestion.questionText)
       resetTimer()
-      startTimer()
+
+      setTimeout(() => {
+        startTimer()
+      }, 0)
+
+      if (isVoiceMode) {
+        speak(currentQuestion.questionText)
+      }
     }
-  }, [currentQuestion?.id]) 
+  }, [currentQuestion?.id, phase])
  
   useEffect(() => {
     if (phase === 'completed' && summary) {
@@ -170,11 +176,11 @@ export default function HybridInterviewPage() {
                     className={cn(
                       'p-4 rounded-full transition-all shadow-lg',
                       isListening
-                        ? 'bg-red-600 hover:bg-red-500 shadow-red-600/30'
-                        : 'bg-green-600 hover:bg-green-500 shadow-green-600/30',
+                        ? 'bg-green-600 hover:bg-green-500 shadow-green-600/30' 
+                        : 'bg-red-600 hover:bg-red-500 shadow-red-600/30',
                     )}
                   >
-                    {isListening ? <MicOff size={20} /> : <Mic size={20} />}
+                    {isListening ? <Mic size={20} /> : <MicOff size={20} />}
                   </button>
                   <button
                     onClick={handleVoiceSubmit}
