@@ -54,6 +54,14 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(buildError(HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred"));
     }
+
+    @ExceptionHandler(SessionCompletedException.class)
+    public ResponseEntity<ErrorResponse> handleSessionCompleted(
+            SessionCompletedException ex) {
+        log.info("Interview completed: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(buildError(HttpStatus.ACCEPTED, "All questions have been asked"));
+    }
  
     private ErrorResponse buildError(HttpStatus status, String message) {
         return ErrorResponse.builder()
