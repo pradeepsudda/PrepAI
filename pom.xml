@@ -29,6 +29,15 @@
 	<properties>
 		<java.version>21</java.version>
 		<flyway.version>11.19.0</flyway.version>
+		<!-- SonarQube server URL — overridden by Jenkins withSonarQubeEnv env var -->
+		<sonar.host.url>http://localhost:9000</sonar.host.url>
+		<!-- Project identification in SonarQube -->
+		<sonar.projectKey>interview-prep-ai</sonar.projectKey>
+		<sonar.projectName>Interview Preparation App</sonar.projectName>
+		<!-- Point SonarQube to JaCoCo coverage report -->
+		<sonar.coverage.jacoco.xmlReportPaths>
+			target/site/jacoco/jacoco.xml
+		</sonar.coverage.jacoco.xmlReportPaths>
 	</properties>
 
 	<dependencies>
@@ -185,6 +194,29 @@
 								</path>
 							</annotationProcessorPaths>
 						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<!-- JaCoCo — generates test coverage report -->
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<version>0.8.11</version>
+				<executions>
+					<!-- Prepare agent before tests run -->
+					<execution>
+						<id>prepare-agent</id>
+						<goals>
+							<goal>prepare-agent</goal>
+						</goals>
+					</execution>
+					<!-- Generate report after tests finish -->
+					<execution>
+						<id>report</id>
+						<phase>test</phase>
+						<goals>
+							<goal>report</goal>
+						</goals>
 					</execution>
 				</executions>
 			</plugin>
