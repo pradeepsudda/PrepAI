@@ -2,7 +2,6 @@ pipeline {
     agent any
 
     tools {
-        maven 'Maven'
         jdk 'JDK21'
     }
 
@@ -15,7 +14,7 @@ pipeline {
 
         stage('Build & Test') {
             steps {
-                sh './mvnw clean verify -DskipTests=true'
+                sh 'chmod +x mvnw && ./mvnw clean verify -DskipTests=true'
             }
             post {
                 always {
