@@ -14,7 +14,7 @@ pipeline {
                     export JAVA_HOME=$(dirname $(dirname $(readlink -f $(which java))))
                     export MAVEN_OPTS="-Dhttps.protocols=TLSv1.2 -Dmaven.wagon.http.ssl.insecure=true -Dmaven.wagon.http.ssl.allowall=true"
                     chmod +x mvnw
-                    ./mvnw clean verify -DskipTests=true
+                    ./mvnw clean verify
                 '''
             }
             post {
