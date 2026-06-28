@@ -36,15 +36,13 @@ pipeline {
             }
         }
 
-        // Quality Gate requires a SonarQube webhook configured at:
-        // SonarQube → Administration → Webhooks → URL: http://<jenkins-ip>:8080/sonarqube-webhook/
-        // stage('Quality Gate') {
-        //     steps {
-        //         timeout(time: 5, unit: 'MINUTES') {
-        //             waitForQualityGate abortPipeline: false
-        //         }
-        //     }
-        // }
+        stage('Quality Gate') {
+            steps {
+                timeout(time: 5, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
+                }
+            }
+        }
     }
 
     post {
