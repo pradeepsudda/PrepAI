@@ -1,10 +1,6 @@
 pipeline {
     agent any
 
-    tools {
-        jdk 'JDK21'
-    }
-
     stages {
         stage('Checkout') {
             steps {
@@ -14,7 +10,11 @@ pipeline {
 
         stage('Build & Test') {
             steps {
-                sh 'chmod +x mvnw && ./mvnw clean verify -DskipTests=true'
+                sh '''
+                    export JAVA_HOME=$(dirname $(dirname $(readlink -f $(which java))))
+                    chmod +x mvnw
+                    ./mvnw clean verify -DskipTests=true
+                '''
             }
             post {
                 always {
@@ -27,7 +27,10 @@ pipeline {
             steps {
                 withSonarQubeEnv('SonarQube') {
                     withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
-                        sh './mvnw sonar:sonar -Dsonar.token=$SONAR_TOKEN'
+                        sh '''
+                            export JAVA_HOME=$(dirname $(dirname $(readlink -f $(which java))))
+                            ./mvnw sonar:sonar -Dsonar.token=$SONAR_TOKEN
+                        '''
                     }
                 }
             }
